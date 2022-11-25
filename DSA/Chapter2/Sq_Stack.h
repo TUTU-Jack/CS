@@ -15,15 +15,21 @@ public:
     Stack(int capacity):capacity(capacity),top(-1),pdata(new Elem[capacity]){ };
     ~Stack() { delete[] pdata;};
 private:
-    Elem *pdata;
-    int capacity;
-    int top;
+    Elem *pdata;        //栈元素
+    int capacity;       //栈容量
+    int top;            //栈顶
 public:
+    //入栈
     Stack &push(const Elem &data);
+    //出栈
     Stack &pop();
+    //栈长度
     int Length() const { return top + 1;};
+    //栈顶元素
     Elem &getTop() const { return pdata[top];};
+    //栈是否为空
     bool isEmpty() { if(top == -1) return true; return false;};
+    //栈是否满
     bool isFull() { if(top == capacity -1) return true; return false;};
 
     friend std::ostream & operator << <Elem>(std::ostream &os,const Stack<Elem> &st);
