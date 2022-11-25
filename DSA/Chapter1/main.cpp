@@ -6,13 +6,14 @@
 
 void test1()
 {
-    Sqlist<int> sl(10,1);
+    Sqlist<int> sl(10);
 
-    std::cout << sl.insert(0,2) << std::endl;
-    std::cout << sl.insert(3,2) << std::endl;
-    std::cout << sl.insert(4,2) << std::endl;
-    std::cout << sl.insert(-1,2) << std::endl;
+    std::cout << sl.insert(0,1) << std::endl;
+    std::cout << sl.insert(2,1) << std::endl;
+    std::cout << sl.insert(3,1) << std::endl;
+    std::cout << sl.insert(-1,1) << std::endl;
 
+    std::cout << sl.insert(1,1) << std::endl;
     std::cout << sl.insert(2,2) << std::endl;
     std::cout << sl.insert(3,4) << std::endl;
     std::cout << sl.insert(3,3) << std::endl;
@@ -20,7 +21,10 @@ void test1()
     std::cout << sl.insert(2,6) << std::endl;
 
     std::cout << sl.remove(0) << std::endl;
-    std::cout << sl.remove(8) << std::endl;
+    std::cout << sl.remove(7) << std::endl;
+
+    std::cout << sl.remove(3) << std::endl;
+    std::cout << sl.remove(5) << std::endl;
 
     std::cout << sl.remove(1).FindX(5) << std::endl;
     std::cout << sl.remove(1).FindX(6) << std::endl;
@@ -30,17 +34,19 @@ void test1()
 
 void test2()
 {
-    Linklist<int> linklist(1);
+    Linklist<int> linklist;
 
     std::cout << linklist.insert(-1,2) << std::endl;
     std::cout << linklist.insert(0,2) << std::endl;
     std::cout << linklist.insert(3,3) << std::endl;
 
+    std::cout << linklist.insert(1,1) << std::endl;
     std::cout << linklist.insert(2,2) << std::endl;
     std::cout << linklist.insert(3,3) << std::endl;
     std::cout << linklist.insert(5,5) << std::endl;
     std::cout << linklist.insert(1,4) << std::endl;
     std::cout << linklist.insert(3,5) << std::endl;
+
 
     std::cout << linklist.remove(-1) << std::endl;
     std::cout << linklist.remove(0) << std::endl;
@@ -50,8 +56,9 @@ void test2()
     std::cout << linklist.remove(2) << std::endl;
     std::cout << linklist.remove(3) << std::endl;
     std::cout << linklist.remove(2) << std::endl;
-
+    
     std::cout << linklist.Length() << std::endl;
+    
 }
 
 int main(int argc,char *argv[])

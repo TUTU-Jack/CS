@@ -17,6 +17,15 @@ class Stack;
 template <typename Elem>
 std::ostream & operator << (std::ostream &os,const Stack<Elem> &st);
 
+
+/*
+ *  链表实现栈数据结构（先入后出）
+ *  插入时间复杂度 O(1)      
+ *  删除时间复杂度 O(1) 
+ *  查找时间复杂度 O(1) 只能返回栈顶元素
+ *  空间占用节点多一个指针空间
+ *  不用事先规定元素个数
+ */
 template <typename Elem>
 class Stack {
 public:
@@ -53,7 +62,9 @@ Stack<Elem>& Stack<Elem>::push(const Elem &data)
 {
     Node<Elem> *node = new Node<Elem>(data);
 
+    //新节点指针指向头节点，之前插入的节点被压到下一个位置上（先入后出）
     node->next = top;
+    //入栈，头指针指向新节点
     top = node;
 
     return *this;
@@ -66,7 +77,7 @@ Stack<Elem>& Stack<Elem>::pop()
 
     if(isEmpty())
         return *this;
-
+    //出栈（最新入栈元素出栈，先入后出），头指针指向头节点下一节点
     top = temp->next;
     delete[] temp;
 

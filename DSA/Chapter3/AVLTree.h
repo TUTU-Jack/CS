@@ -3,6 +3,13 @@
 
 namespace AVL {
 
+/*
+ * 自平衡二叉搜索树（左右子树的高度差不超过1），因此可以使用二分查找，不会退化成链表
+ * 重点：平衡操作
+ * 插入时间复杂度 O(lgN)
+ * 删除时间复杂度 O(lgN)
+ * 查找时间复杂度 O(lgN)
+ */
 template <typename Elem>
 class AVLTree:public BST::BSTree<Elem> {
 public:
@@ -53,6 +60,7 @@ BTNode<Elem> *AVLTree<Elem>::LLRotate(BTNode<Elem> *root)
     //原先左子树根节点变为根节点，高度在原先的基础上加1
     child->height = max(height(child->left),height(child->right)) + 1;
 
+    //返回旋转后的树根节点
     return root;
 }
 
@@ -60,12 +68,17 @@ template <typename Elem>
 BTNode<Elem> *AVLTree<Elem>::RRRotate(BTNode<Elem> *root)
 {
     BTNode<Elem> *child = root;
+    //根节点指向根节点的右子树（将右子树拉上来）
     root = root->right;
+     //将原先右子树的左子树插入到原先根节点的右子树
     child->right = root->left;
+    //将原先的根节点拉下来变为原先右子树的左子树（满足搜索二叉树右边节点比左边节点大的特点）
     root->left = child;
 
+    //原先右子树根节点变为根节点，高度在原先的基础上加1
     child->height = max(height(child->left),height(child->right)) + 1;
 
+    //返回旋转后的树根节点
     return root;
 }
 
@@ -91,27 +104,36 @@ inline BTNode<Elem> *AVLTree<Elem>::RLRotate(BTNode<Elem> *root)
 template <typename Elem>
 BTNode<Elem> *AVLTree<Elem>::rinsert(BTNode<Elem> *root,const Elem &data)
 {
+    //左/右节点为空，插入
     if(root == nullptr)
         root = new BTNode<Elem>(data);
+    //左子树插入递归
     else if(data < root->data)
     {
         root->left = rinsert(root->left,data);
+        //插入完成后返回到父节点，发现左右子树失衡，开始自平衡
         if((height(root->left) - height(root->right)) == 2)
         {
+            //插入在左子树的左子树节点导致失衡，左左单旋
             if(data < root->left->data)
                 root = LLRotate(root);
+            //插入在左子树的右子树节点导致失衡，左右双旋
             else
                 root = LRRotate(root);
         }
 
     }
+    //右子树插入递归
     else if(data > root->data)
     {
         root->right = rinsert(root->right,data);
+        //插入完成后返回到父节点，发现左右子树失衡，开始自平衡
         if((height(root->right) - height(root->left)) == 2)
         {
+            //插入在右子树的右子树节点导致失衡，右右单旋
             if(data > root->right->data)
                 root = RRRotate(root);
+            //插入在右子树的左子树节点导致失衡，右左双旋
             else
                 root = RLRotate(root);
         }
@@ -119,6 +141,7 @@ BTNode<Elem> *AVLTree<Elem>::rinsert(BTNode<Elem> *root,const Elem &data)
 
     }
 
+    //插入完成后节点高度加1（递归时层层递增）
     root->height = max(height(root->left),height(root->right)) + 1;
 
     return root;
@@ -135,9 +158,10 @@ inline AVLTree<Elem> &AVLTree<Elem>::insert(const Elem &data)
 template <typename Elem>
 BTNode<Elem> *AVLTree<Elem>::rremove(BTNode<Elem> *root,const Elem &x)
 {   
+    //没找到被删除元素，返回
     if(root == nullptr)
         return root;
-
+    //左子树递归删除
     if(x < root->data)
     {
         root->left = rremove(root->left,x);
@@ -150,6 +174,7 @@ BTNode<Elem> *AVLTree<Elem>::rremove(BTNode<Elem> *root,const Elem &x)
                 root = LRRotate(root);
         }
     }
+    //右子树递归删除
     else if(x > root->data)
     {
         root->right = rremove(root->right,x);
@@ -193,8 +218,10 @@ BTNode<Elem> *AVLTree<Elem>::rremove(BTNode<Elem> *root,const Elem &x)
 
     }
     
+    //节点高度改变
     if(root != nullptr)
         root->height = max(height(root->left),height(root->right)) + 1;
+
     return root;
 }
 

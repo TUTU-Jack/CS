@@ -45,6 +45,7 @@ void test3()
 {
     Sq_Queue::Queue<int> queue(5);
 
+
     for(int i = 0;i < 6;i++)
         std::cout << queue.enQueue(i) << std::endl;
 

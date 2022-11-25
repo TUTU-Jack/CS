@@ -9,6 +9,14 @@ class Stack;
 template <typename Elem>
 std::ostream & operator << (std::ostream &os,const Stack<Elem> &st);
 
+/*
+ *  顺序表实现栈数据结构（先入后出）
+ *  插入时间复杂度 O(1)      
+ *  删除时间复杂度 O(1) 
+ *  查找时间复杂度 O(1) 只能返回栈顶元素
+ *  空间占用不大
+ *  需要事先规定元素个数
+ */
 template <typename Elem>
 class Stack {
 public:
@@ -17,7 +25,7 @@ public:
 private:
     Elem *pdata;        //栈元素
     int capacity;       //栈容量
-    int top;            //栈顶
+    int top;            //栈顶（栈长度）
 public:
     //入栈
     Stack &push(const Elem &data);
@@ -48,9 +56,10 @@ std::ostream & operator << (std::ostream &os,const Stack<Elem> &st)
 template <typename Elem>
 inline Stack<Elem>& Stack<Elem>::push(const Elem &data)
 {
+    //栈满
     if(isFull())
         return *this;
-    
+    //入栈，栈顶后移（栈长度增加）
     pdata[++top] = data;
 
     return *this;
@@ -59,8 +68,10 @@ inline Stack<Elem>& Stack<Elem>::push(const Elem &data)
 template <typename Elem>
 inline Stack<Elem>& Stack<Elem>::pop()
 {
+    //栈空
     if(isEmpty())
         return *this;
+    //出栈，栈顶后移（栈长度减少）
     top--;
     
     return *this;
