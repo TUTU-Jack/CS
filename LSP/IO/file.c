@@ -1,0 +1,181 @@
+#include "file.h"
+
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <dirent.h>
+#include <pwd.h>
+#include <grp.h>
+#include <stdarg.h>
+#include <sys/select.h>
+
+void cp1(const char *inputFileName,const char *outputFileName)
+{
+    FILE *in,*out;
+    clock_t time = clock();
+    out = fopen(outputFileName,"r");
+    in = fopen(inputFileName,"w");
+    int input = fileno(in);
+    int flag = fcntl(input,F_GETFL);
+    if(flag & O_NONBLOCK)
+        printf("This is get file status!\n");
+    flag = flag | O_NONBLOCK;
+    fcntl(input,F_SETFL,flag);
+    flag = fcntl(input,F_GETFL);
+    if(flag & O_NONBLOCK)
+        printf("This is get file status!\n");
+
+    fseek(out,0,SEEK_END);
+    int size = ftell(out);
+    fseek(out,0,SEEK_SET);
+
+    char buffer[size];
+    fread(buffer,sizeof(char),size,out);
+    fwrite(buffer,sizeof(char),size,in);
+
+    fclose(out);
+    fclose(in);
+    printf("time:%ld\n",clock() - time);
+    
+}
+
+void cp(const char *inputFileName,const char *outputFileName)
+{
+    int in,out;
+    clock_t time = clock();
+    //以只读方式打开文件
+    out = open(outputFileName,O_RDONLY);
+    //设置文件状态为只写、无文件时创建文件、将文件截断为0、直接读写IO、非阻塞IO
+    int flag = O_WRONLY | O_CREAT | O_TRUNC | O_NONBLOCK;
+    //设置文件权限为用户、组、其它为可读可写可执行
+    mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IWGRP | S_IXGRP | S_IROTH | S_IWOTH | S_IXOTH;
+    in = open(inputFileName,flag,mode);
+    //文件相关信息设置与获取函数：获取当前文件状态
+    int fflag = fcntl(in,F_GETFL);
+
+    if(fflag & (__O_DIRECT | O_NONBLOCK))
+        printf("This is get file status!\n");
+    //将文件指针指向文件末尾，并返回文件从头到当前指针位置的长度
+    int size = lseek(out,0,SEEK_END);
+    char buffer[size];
+    //将文件指针指向文件头
+    lseek(out,0,SEEK_SET);
+    /*
+    struct stat buf;
+    stat(outputFileName,(struct stat*)&buf);
+
+    int size = buf.st_size;
+    char buffer[size];
+    */
+    //读取文件
+    ssize_t len = read(out,buffer,size);
+    //写文件
+    write(in,buffer,size);
+    //关闭文件
+    close(out);
+    close(in);
+    printf("time:%ld\n",clock() - time);
+}
+
+void mode_to_letters(mode_t mode,char *str)
+{
+    strcpy(str,"----------");
+    if(S_ISDIR(mode))
+        str[0] = 'd';
+    if(S_ISCHR(mode))
+        str[0] = 'e';
+    if(S_ISBLK(mode))
+        str[0] = 'b';
+
+    if(mode & S_IRUSR)
+        str[1] = 'r';
+    if(mode & S_IWUSR)
+        str[2] = 'w';
+    if(mode & S_IXUSR)
+        str[3] = 'x';
+    
+    if(mode & S_IRGRP)
+        str[4] = 'r';
+    if(mode & S_IWGRP)
+        str[5] = 'w';
+    if(mode & S_IXGRP)
+        str[6] = 'x';
+    
+    if(mode & S_IROTH)
+        str[7] = 'r';
+    if(mode & S_IWOTH)
+        str[8] = 'w';
+    if(mode & S_IXOTH)
+        str[9] = 'x';
+
+}
+
+const char *uid_to_name(uid_t uid)
+{
+    struct passwd *pw_ptr;
+    static char numstr[10];
+    //获取用户信息
+    if((pw_ptr = getpwuid(uid)) == NULL)
+    {
+        sprintf(numstr,"%d",uid);
+        return numstr;
+    }
+    else
+        return pw_ptr->pw_name;
+}
+
+
+const char *gid_to_name(gid_t gid)
+{
+    struct group *grp_ptr;
+    static char numstr[10];
+    //获取组信息
+    if((grp_ptr = getgrgid(gid)) == NULL)
+    {
+        sprintf(numstr,"%d",gid);
+        return numstr;
+    }
+    else
+        return grp_ptr->gr_name;
+}
+
+
+void show_fileInfo(const char *filename,void *buf)
+{
+    struct stat *stat_buf = (struct stat *)buf;
+    char modestr[11];
+    //将文件权限二进制信息转换为字符信息
+    mode_to_letters(stat_buf->st_mode,modestr);
+    printf("%s",modestr);
+    printf(" %d",(int)stat_buf->st_nlink);
+    printf(" %s",uid_to_name(stat_buf->st_uid));
+    printf(" %s",gid_to_name(stat_buf->st_gid));
+    printf(" %5ld",stat_buf->st_size);
+    printf(" %.12s",4+(char *)ctime(&stat_buf->st_mtime));
+    printf(" %s\n",filename);
+
+}
+
+void ls(const char *dirname,char *arg)
+{
+    int i = 0;
+    //文件信息以该结构体形式存储
+    struct stat buf;
+    //打开目录文件
+    DIR *dir = opendir(dirname);
+    struct dirent *direntp;
+    //读取目录项，每读完一条，目录文件指针自动++
+    while((direntp = readdir(dir)) != NULL)
+    {
+        if(strcmp(direntp->d_name,".") == 0 || strcmp(direntp->d_name,"..") == 0)
+            continue;
+        //获取某一文件信息
+        stat(direntp->d_name,&buf);
+        show_fileInfo(direntp->d_name,&buf);
+    }
+
+}
